@@ -1,0 +1,8 @@
+.venv/
+.idea/
+__pycache__/
+dataset/
+encodings.pickle
+classroom.jpg
+classroom.png
+attendance_*.csv
