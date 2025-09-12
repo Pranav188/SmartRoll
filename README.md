@@ -1,114 +1,106 @@
 University Project Title: Facial-Attendance-&-CheckIn-Engine
 
- # *****SmartRoll: AI-Powered Facial Recognition Attendance System*****
+# SmartRoll: AI-Powered Facial Recognition Attendance System
+
+SmartRoll is an AI-powered tool that automates classroom attendance using Python, OpenCV, and facial recognition. Simply upload a classroom photo to instantly receive a comprehensive attendance report, eliminating manual roll-call with fast and accurate computer vision.
+
+---
+
+## Table of Contents
+
+- [Features](#features)
+- [How It Works](#how-it-works)
+- [Technology Stack](#technology-stack)
+- [Getting Started](#getting-started)
+- [License](#license)
+
+---
+
+## Features
+
+- Automated attendance for an entire classroom in seconds from a single image.
+- AI-powered recognition using a pre-trained deep learning model with the **face_recognition** library for robust identification.
+- Detailed, timestamped CSV report listing each student as "Present" or "Absent".
+- Simple enrollment: add new students by creating folders in `/dataset` and dropping in their photos—no database configuration needed.
+- Adjustable recognition tolerance to control false positives for different environments.
+
+---
+
+## How It Works?
+
+### Enrollment (One-Time Setup)
+- Run `encode_faces.py` to scan the `/dataset` directory.
+- For each student's image, a unique 128-point facial encoding is generated.
+- All encodings are saved in `encodings.pickle` (the face database).
+
+### Recognition (Daily Use)
+- Instructors submit a classroom photo to `mark_attendance.py`.
+- The script detects all faces, computes new encodings, and compares them with the database.
+- Matched students are marked as present; unmatched are marked absent.
+- The final report is printed to the terminal and saved as a CSV file.
+
+---
+
+## Technology Stack
+
+- Python (backend)
+- OpenCV (computer vision)
+- face_recognition (powered by dlib)
+- Pickle (data serialization)
+
+---
+
+## Getting Started
+
+### Prerequisites
+
+- Python 3.8+
+- pip and venv (virtual environment)
+
+### Installation
+
+1. Clone the repository
+   
+   `git clone https://github.com/Pranav188/SmartRoll.git`
+   
+   `cd SmartRoll`
+
+2. Create a virtual enviroment
+   
+   `python3 -m venv .venv`
+   
+   `source .venv/bin/activate`
 
 
-This project automates classroom attendance using Python, OpenCV, and facial recognition. It analyzes a single photograph to identify students by comparing faces against an enrolled dataset in a supervised learning model. The engine then generates a complete report, marking all students as present or absent, streamlining administrative tasks with computer vision.
+4. Install necesary libraries
+   
+   `pip install opencv-python numpy face_recognition`
 
-**Key Features**
+Note: If on macOS and face_recognition (dlib) install fails, install cmake first
 
-Automated Attendance: Mark attendance for an entire classroom in seconds from a single image.
+`brew install cmake`
 
-AI-Powered Recognition: Utilizes a powerful, pre-trained deep learning model via the **face_recognition** library for highly accurate identification.
 
-Detailed Report Generation: Automatically creates a timestamped CSV file listing all students as either "Present" or "Absent".
+### Enrollment
 
-Simple Enrollment Process: To enroll a new student, simply create a folder with their name and add their photos in the /dataset folder (in main folder). No complex database entries are needed.
+1. Create a unique folder inside `dataset/` for each student, and add 2–3 clear, well-lit photos.
+2. Run:
+    ```
+    python encode_faces.py
+    ```
 
-Configurable Accuracy: The recognition tolerance can be easily adjusted to prevent false positives and tune the system for different environments.
+### Mark Attendance
 
-**How It Works:**
+1. Add your classroom photo (e.g., `classroom.jpg`) to the main project folder.
+2. Update the `ALL_STUDENTS` list in `mark_attendance.py` to match the folder names.
+3. Run:
+    ```
+    python mark_attendance.py
+    ```
 
-The system operates in two main phases:
+---
 
-**1.Enrollment** (One-Time Setup):
+## License
 
-The encode_faces.py script scans the /dataset folder.
-
-For each student's image, it detects the face and computes a unique 128-point facial encoding.
-
-All known encodings are saved into a single encodings.pickle file, which acts as our "face database."
-
-**2.Recognition** (Daily Use):
-
-An instructor provides a classroom photo to the mark_attendance_from_photo.py script.
-
-The script detects every face in the image and computes their encodings on the fly.
-
-Each of these new encodings is compared against the known encodings in the database to find matches.
-
-The list of matched (present) students is compared against the master class roster to determine who is absent.
-
-The final report is displayed in the terminal and saved to a CSV file.
-
-**Technology Stack**
-
-Backend: Python
-
-Computer Vision: OpenCV
-
-Facial Recognition: face_recognition (built on dlib's state-of-the-art face recognition model)
-
-Data Serialization: Pickle
-
-**Getting Started:**
-
-Follow these steps to get the project running on your local machine.
-
-Prerequisites
-
-Python 3.8+
-
-pip and venv
-
-Installation & Usage
-
-Clone the repository:
-
-git clone [https://github.com/Pranav188/SmartRoll.git](https://github.com/Pranav188/SmartRoll.git)
-cd SmartRoll
-
-Create and activate a virtual environment:
-
-# For macOS/Linux
-`python3 -m venv .venv`
-`source .venv/bin/activate`
-
-# For Windows
-`python -m venv .venv`
-`.\.venv\Scripts\activate`
-#
-
-Install the required libraries:
-
-`pip install opencv-python numpy face_recognition`
-
-**Note for macOS users: If the installation fails while building dlib, you need to install cmake first.
-for that.**
-
-`brew install cmake `
-
-Enroll Students:
-
-Create a sub-folder inside the dataset/ directory for each student (e.g., dataset/pranav/).
-
-Place 2-3 clear, well-lit photos of the student inside their respective folder.
-
-Run the Enrollment Script:
-
-This will create the encodings.pickle file. You only need to run this when you add new students or photos.
-
-`python encode_faces.py`
-
-Mark Attendance:
-
-Place your classroom photo (e.g., classroom.jpg) in the main project folder.
-
-Crucially, open mark_attendance_from_photo.py and update the ALL_STUDENTS list to match your dataset folder names exactly.
-
-Run the main script:
-
-`python mark_attendance_from_photo.py`
-
-The results will be printed in your terminal, and a CSV report will be saved.
+MIT
 
