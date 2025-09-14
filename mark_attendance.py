@@ -4,18 +4,9 @@ import cv2
 from datetime import datetime
 import os
 
-# --- Configuration ---
+
 ALL_STUDENTS = [
-    "ashish",
-    "keshav",
-    "nikhil",
-    "parth",
-    "pranav",
-    "rishiraj",
-    "rushil",
-    "saumya",
-    "vedantd",
-    "vedantr"
+    #insert student names here
 ]
 CLASSROOM_IMAGE_PATH = "classroom.jpg"
 
@@ -35,7 +26,7 @@ image = cv2.imread(CLASSROOM_IMAGE_PATH)
 if image is None:
     print(f"[ERROR] Could not load image from {CLASSROOM_IMAGE_PATH}.")
     exit()
-rgb_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+rgb_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB) # covert from BGR to RGB
 
 # 3. Detect faces
 print("[INFO] Detecting faces in the image...")

@@ -65,16 +65,16 @@ SmartRoll is an AI-powered tool that automates classroom attendance using Python
    
    `cd SmartRoll`
 
-2. Create a virtual enviroment
+2. Create a virtual environment
    
    `python3 -m venv .venv`
    
    `source .venv/bin/activate`
 
 
-4. Install necesary libraries
+4. Install necessary libraries
    
-   `pip install opencv-python numpy face_recognition`
+   `pip3 install opencv-python face_recognition`
 
 Note: If on macOS and face_recognition (dlib) install fails, install cmake first
 
@@ -102,5 +102,5 @@ Note: If on macOS and face_recognition (dlib) install fails, install cmake first
 
 ## License
 
-MIT
+MIT © Pranav Rajeshirke
 
