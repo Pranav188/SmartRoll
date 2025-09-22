@@ -75,3 +75,6 @@ def encode_faces():
     print(f"Total faces successfully encoded: {total_faces_encoded}")
     print(f"Encodings saved to '{encodings_file}'")
     print("=" * 30)
+
+if __name__ == "__main__":
+    encode_faces()
