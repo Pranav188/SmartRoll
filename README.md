@@ -2,7 +2,7 @@ University Project Title: Facial-Attendance-&-CheckIn-Engine
 
 # SmartRoll: AI-Powered Facial Recognition Attendance System
 
-SmartRoll is an AI-powered tool that automates classroom attendance using Python, OpenCV, and facial recognition. Simply upload a classroom photo to instantly receive a comprehensive attendance report, eliminating manual roll-call with fast and accurate computer vision.
+**SmartRoll** is a web application designed to automate classroom attendance. By leveraging the power of computer vision, this system identifies all known students from a single photograph of a classroom and instantly generates a complete, user-friendly attendance report. This project refactors a terminal-based script into a robust and interactive Django web app.
 
 ---
 
@@ -18,39 +18,45 @@ SmartRoll is an AI-powered tool that automates classroom attendance using Python
 
 ## Features
 
-- Automated attendance for an entire classroom in seconds from a single image.
-- AI-powered recognition using a pre-trained deep learning model with the **face_recognition** library for robust identification.
-- Detailed, timestamped CSV report listing each student as "Present" or "Absent".
-- Simple enrollment: add new students by creating folders in `/dataset` and dropping in their photos—no database configuration needed.
-- Adjustable recognition tolerance to control false positives for different environments.
+- **Interactive Web Interface:** An easy-to-use UI built with Django for uploading classroom photos and viewing results instantly.
+- **Automated Attendance:** Mark attendance for an entire classroom in seconds.
+- **AI-Powered Recognition:** Utilizes a powerful, pre-trained deep learning model via the `face_recognition` library for robust identification..
+- **Visual Feedback:** Displays the processed classroom photo with recognized faces highlighted in labeled boxes.
+- **Adjustable Accuracy:** The recognition tolerance can be easily configured to control false positives.
 
 ---
 
 ## How It Works?
 
-### Enrollment (One-Time Setup)
-- Run `encode_faces.py` to scan the `/dataset` directory.
-- For each student's image, a unique 128-point facial encoding is generated.
-- All encodings are saved in `encodings.pickle` (the face database).
+The system operates in two main phases:
 
-### Recognition (Daily Use)
-- Instructors submit a classroom photo to `mark_attendance.py`.
-- The script detects all faces, computes new encodings, and compares them with the database.
-- Matched students are marked as present; unmatched are marked absent.
-- The final report is printed to the terminal and saved as a CSV file.
+### Enrollment (One-Time Setup)
+- The standalone script `encode_faces.py` scans the `dataset/` directory.
+- For each student's image, a unique 128-point **facial encoding** is generated.
+- All encodings are serialized and saved into the `encodings.pickle` file, which acts as the application's face database.
+
+### Recognition (Daily Use via Web App)
+- The instructor navigates to the SmartRoll web application in their browser.
+- They upload a classroom photo using the simple web form.
+- The Django backend receives the image, detects all faces, computes their encodings, and compares them against the `encodings.pickle` database.
+- The results, including "Present" and "Absent" lists and the processed image, are rendered directly on the webpage for immediate review.
+
 
 ---
 
 ## Technology Stack
 
-- Python (backend)
-- OpenCV (computer vision)
-- face_recognition (powered by dlib)
-- Pickle (data serialization)
+- **Backend:** Python, Django
+- **Computer Vision:** OpenCV
+- **Facial Recognition:** `face_recognition` (dlib)
+- **Data Serialization:** Pickle
+- **Frontend:** HTML, Tailwind CSS (via CDN)
 
 ---
 
 ## Getting Started
+
+Follow these steps to get the project running on your local machine.
 
 ### Prerequisites
 
@@ -65,14 +71,14 @@ SmartRoll is an AI-powered tool that automates classroom attendance using Python
    
    `cd SmartRoll`
 
-2. Create a virtual environment
+2. Create and activate a virtual environment
    
    `python3 -m venv .venv`
    
    `source .venv/bin/activate`
 
 
-4. Install necessary libraries
+3. Install necessary libraries
    
    `pip3 install opencv-python face_recognition`
 
@@ -80,27 +86,26 @@ Note: If on macOS and face_recognition (dlib) install fails, install cmake first
 
 `brew install cmake`
 
+4. Enroll Students:
+    - Create a unique folder inside `dataset/` for each student (e.g., `dataset/Vedant_Sitoot/`).
+    - Add 1–2 clear, well-lit photos of each student to their respective folder.
+    - Run the enrollment command:
+      ```sh
+      python encode_faces.py
+      ```
+5.  Run the Django Application:
+    - First, apply the initial database migrations:
+      ```sh
+      python manage.py migrate
+      ```
+    - Then, start the development server:
+      ```sh
+      python manage.py runserver
+      ```
+    - Open your web browser and navigate to `http://127.0.0.1:8000/`.
 
-### Enrollment
-
-1. Create a unique folder inside `dataset/` for each student, and add 2–3 clear, well-lit photos.
-2. Run:
-    ```
-    python encode_faces.py
-    ```
-
-### Mark Attendance
-
-1. Add your classroom photo (e.g., `classroom.jpg`) to the main project folder.
-2. Update the `ALL_STUDENTS` list in `mark_attendance.py` to match the folder names.
-3. Run:
-    ```
-    python mark_attendance.py
-    ```
-
----
 
 ## License
 
-MIT © Pranav Rajeshirke
+MIT © Pranav
 
