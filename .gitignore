@@ -1,8 +1,13 @@
 .venv/
-.idea/
 __pycache__/
+.idea/
+.DS_Store
+
+db.sqlite3
+staticfiles/
+*.log
+
 dataset/
 encodings.pickle
-classroom.jpg
-classroom.png
+media/
 attendance_*.csv

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add New Student</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style> body { font-family: 'Inter', sans-serif; } </style>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto p-8 max-w-2xl">
+        <header class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-800">Enroll a New Student</h1>
+            <p class="text-gray-600">Provide the student's name and at least one clear photo.</p>
+        </header>
+        <main class="bg-white rounded-lg shadow-lg p-8">
+            <form method="post" enctype="multipart/form-data" class="space-y-6">
+                {% csrf_token %}
+                <div>
+                    <label for="student_name" class="block text-sm font-medium text-gray-700">Student Name</label>
+                    <input type="text" name="student_name" id="student_name" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div>
+                    <label for="photos" class="block text-sm font-medium text-gray-700">Student Photos</label>
+                    <input type="file" name="photos" id="photos" required multiple class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"/>
+                    <p class="text-xs text-gray-500 mt-1">You can select multiple photos. Ensure each photo contains only one face.</p>
+                </div>
+                <div class="flex items-center justify-end space-x-4 pt-4">
+                    <a href="{% url 'student_list' %}" class="text-gray-600 hover:underline">Cancel</a>
+                    <button type="submit" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 transition">Enroll Student</button>
+                </div>
+            </form>
+        </main>
+    </div>
+</body>
+</html>
