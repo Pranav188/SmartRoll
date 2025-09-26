@@ -2,12 +2,12 @@
 __pycache__/
 .idea/
 .DS_Store
-
 db.sqlite3
 staticfiles/
 *.log
-
 dataset/
 encodings.pickle
 media/
 attendance_*.csv
+migrate_students.py
+

@@ -3,12 +3,12 @@ import pickle
 import cv2
 import os
 from django.conf import settings
-
+from celery import shared_task
 # --- Configuration ---
 ENCODINGS_FILE = os.path.join(settings.BASE_DIR, 'encodings.pickle')
 DATASET_PATH = os.path.join(settings.BASE_DIR, 'dataset')
 DETECTION_MODEL = 'hog'
-MATCH_TOLERANCE = 0.5
+MATCH_TOLERANCE = 0.4
 
 
 def process_attendance(image_path, all_students):
@@ -105,3 +105,12 @@ def rebuild_encodings():
     print("[INFO] Encodings rebuilt successfully.")
     return True
 
+@shared_task
+def rebuild_encodings_task():
+    """
+    Scans the dataset directory and re-encodes all faces as a background task.
+    """
+    print("[CELERY TASK] Starting: Rebuilding face encodings...")
+    # ... the rest of your rebuild_encodings logic remains the same ...
+    # Make sure to return something to indicate success
+    return "Encodings rebuilt successfully."
