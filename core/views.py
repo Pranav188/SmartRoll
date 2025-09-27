@@ -52,9 +52,6 @@ def add_student_view(request):
                 fs = FileSystemStorage(location=student_dir)
                 fs.save(photo.name, photo)
 
-            # --- CHANGE ---
-            # Instead of running the slow function directly,
-            # we tell our Celery worker to run it in the background.
             print("[INFO] Sending rebuild_encodings task to Celery worker...")
             rebuild_encodings_task.delay()
 

@@ -1,14 +1,17 @@
-# University Project: Facial-Attendance-&-CheckIn-Engine
+### University Project: Facial Attendance & Check-In Engine
+
+---
 
 # SmartRoll: AI-Powered Facial Recognition Attendance System
 
-**SmartRoll** is a full-featured web application designed to automate classroom attendance. By leveraging the power of computer vision and a Django backend, this system identifies students from a single photograph and provides a complete, interactive attendance report. Users can also manage the student roster directly through the web interface, including adding, viewing, and deleting students on the fly.
+**SmartRoll** is a full-featured, asynchronous web application designed to automate classroom attendance. By leveraging a powerful stack including Django, Celery, and Redis, this system offloads heavy AI processing to background workers, ensuring a fast and responsive user experience. It identifies students from a single photograph and provides a complete, interactive attendance report.
 
 ---
 
 ## Table of Contents
 
 - [Features](#features)
+- [System Architecture](#system-architecture)
 - [How It Works](#how-it-works)
 - [Technology Stack](#technology-stack)
 - [Getting Started](#getting-started)
@@ -16,44 +19,51 @@
 
 ---
 
-## Features
+##  Features
 
-- **Dynamic Student Management:** Enroll new students, view the current roster, and delete students directly from the web interface without touching the command line.
+- **Asynchronous Task Processing:** Utilizes **Celery** and **Redis** to offload slow face-encoding tasks to a background worker, ensuring the web interface remains fast and responsive at all times.
+- **Dynamic Student Management:** Enroll new students, view the current roster, and delete students directly from the web interface.
 - **Interactive Web UI:** A clean and easy-to-use interface built with Django for all functionalities.
-- **Automated Attendance:** Mark attendance for an entire classroom in seconds from a single image upload.
-- **AI-Powered Recognition:** Utilizes a powerful, pre-trained deep learning model via the `face_recognition` library for robust identification.
+- **AI-Powered Recognition:** Leverages a pre-trained deep learning model via the `face_recognition` library for robust identification.
 - **Instant Visual Feedback:** Displays the processed classroom photo with recognized faces highlighted in labeled boxes.
-- **Database Integration:** Uses a robust SQLite database to manage student records, making the application a single source of truth.
+- **Database Integration:** Uses a robust SQLite database to manage student records.
 
 ---
 
-## How It Works
+##  System Architecture
 
-The system operates in two main phases, both now managed through the web application:
+This project uses a modern, decoupled architecture to handle long-running tasks without blocking the user interface.
+
+
+
+1.  **Django Web Server:** The user-facing component that handles fast HTTP requests, serves web pages, and saves initial data.
+2.  **Redis:** A high-speed message broker. When a slow task is needed (like re-encoding faces), Django places a "job ticket" into Redis.
+3.  **Celery Worker:** A separate background process that constantly monitors Redis. When it sees a new job ticket, it picks it up and executes the slow, CPU-intensive AI task, leaving the web server free to handle other users.
+
+---
+
+##  How It Works
 
 ### Enrollment (Managed via Web UI)
-- An instructor navigates to the "Add Student" page.
-- They enter the student's name and upload one or more clear photos through the web form.
-- The Django backend automatically:
-    1.  Creates a new student record in the **SQLite database**.
-    2.  Saves the new photos to the `dataset/` directory.
-    3.  Triggers a background process to re-scan the entire `dataset` and rebuild the `encodings.pickle` file, making the new student immediately recognizable.
+- An instructor navigates to the "Add Student" page and submits the form.
+- The Django backend instantly saves the student's info to the database and sends a "rebuild encodings" job to **Redis**.
+- A **Celery worker** picks up this job in the background and runs the slow process of re-scanning the `dataset` and creating the new `encodings.pickle` file, all without making the user wait.
 
 ### Recognition (Daily Use via Web App)
-- The instructor navigates to the main attendance page and uploads a classroom photo.
+- The instructor uploads a classroom photo.
 - The Django backend pulls the official student roster from the database.
-- It detects all faces in the photo, computes their encodings, and compares them against the `encodings.pickle` database.
-- The results, including "Present" and "Absent" lists and the processed image, are rendered directly on the webpage for immediate review.
+- It detects all faces, computes their encodings, and compares them against the latest `encodings.pickle` database.
+- The results are rendered directly on the webpage for immediate review.
 
 ---
 
-## Technology Stack
+##  Technology Stack
 
 - **Backend:** Python, Django
+- **Asynchronous Task Queue:** Celery, Redis
 - **Database:** SQLite
 - **Computer Vision:** OpenCV
 - **Facial Recognition:** `face_recognition` (dlib)
-- **Data Serialization:** Pickle
 - **Frontend:** HTML, Tailwind CSS (via CDN)
 
 ---
@@ -65,7 +75,7 @@ Follow these steps to get the project running on your local machine.
 ### Prerequisites
 
 - Python 3.8+
-- `pip` and `venv` (virtual environment)
+- Homebrew (for macOS users, to install `cmake` and `redis`)
 
 ### Installation & Setup
 
@@ -77,44 +87,35 @@ Follow these steps to get the project running on your local machine.
 
 2.  **Create and activate a virtual environment:**
     ```sh
-    # For macOS/Linux
     python3 -m venv .venv
     source .venv/bin/activate
-    
-    # For Windows
-    python -m venv .venv
-    .\.venv\Scripts\activate
     ```
 
-3.  **Install necessary libraries:**
+3.  **Install Python libraries:**
     ```sh
-    pip install -r requirements.txt
+    pip install opencv face_recognition
     ```
-    > **Note for macOS users:** If `dlib` installation fails, you may need to install `cmake` first: `brew install cmake`
 
-4.  **Set up the Database:**
-    - Run the initial database migrations to create your tables:
-      ```sh
-      python manage.py migrate
-      ```
+4.  **Install and run Redis:**
+    ```sh
+    brew install redis
+    brew services start redis
+    ```
 
-5.  **Run the Django Application:**
-    - Start the development server:
-      ```sh
-      python manage.py runserver
-      ```
-    - Open your web browser and navigate to `http://127.0.0.1:8000/`.
+5.  **Set up the Database:**
+    ```sh
+    python manage.py migrate
+    ```
 
-### Usage
+### Running the Application
 
-1.  From the main page, click **"Add Student"** to enroll your first few students using the web form.
-2.  Click **"View Current Students"** to see the list of enrolled students.
-3.  Once students are enrolled, return to the main page to upload a classroom photo and mark attendance.
-4.  (Optional) For bulk enrollment, you can still manually place photos in the `dataset/` folder and run `python encode_faces.py`, but you must also add the students through the "Add Student" interface for the database to be aware of them.
+To run the application, you need **two separate terminals**.
 
----
-
+**In Terminal 1 - Start the Celery Worker:**
+```sh
+celery -A smart_roll worker -l info
+```
 ## License
-
 This project is licensed under the MIT License.
+
 MIT © Pranav
