@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.core.files.storage import FileSystemStorage
 from django.conf import settings
 from .models import Student
-from .face_recognition_engine import process_attendance, rebuild_encodings_task  # <-- Import the task
+from .face_recognition_engine import process_attendance, rebuild_encodings_task
 import os
 import shutil
 
@@ -10,7 +10,6 @@ import shutil
 def attendance_view(request):
     context = {}
     if request.method == 'POST' and request.FILES.get('classroom_photo'):
-        # Get the list of all students directly FROM THE DATABASE
         all_students = list(Student.objects.values_list('name', flat=True))
 
         classroom_photo = request.FILES['classroom_photo']
@@ -69,8 +68,6 @@ def delete_student_view(request, student_id):
 
         student.delete()
 
-        # --- CHANGE ---
-        # Trigger the background task here as well.
         print("[INFO] Sending rebuild_encodings task to Celery worker...")
         rebuild_encodings_task.delay()
 

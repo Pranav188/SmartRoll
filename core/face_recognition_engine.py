@@ -8,7 +8,7 @@ from celery import shared_task
 ENCODINGS_FILE = os.path.join(settings.BASE_DIR, 'encodings.pickle')
 DATASET_PATH = os.path.join(settings.BASE_DIR, 'dataset')
 DETECTION_MODEL = 'hog'
-MATCH_TOLERANCE = 0.4
+MATCH_TOLERANCE = 0.3
 
 
 def process_attendance(image_path, all_students):
