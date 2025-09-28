@@ -1,8 +1,14 @@
+#no need to use this file, since enrollment logic is present in face_recognition_engine script
+#only run this script when bulk enrollment is required.
+'''
+if using via terminal, before running this script, add new student photos in /dataset dir
+then delete the existing encodings.pickle file and run this file, this approach isn't efficient but surely
+better than appending new encodings
+'''
 import face_recognition
 import pickle
 import cv2
 import os
-
 
 dataset_path = "dataset"
 encodings_file = 'encodings.pickle'

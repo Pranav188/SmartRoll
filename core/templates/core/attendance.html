@@ -3,80 +3,154 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SmartRoll - Attendance System</title>
+    <title>SmartRoll - AI Attendance</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style> body { font-family: 'Inter', sans-serif; } </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0c0a09; /* A very dark, near-black */
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        .glass-card {
+            background: rgba(38, 38, 38, 0.4); /* Semi-transparent dark grey */
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .glow-effect {
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(29, 78, 216, 0.3) 0%, rgba(29, 78, 216, 0) 60%);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: -1;
+        }
+    </style>
 </head>
-<body class="bg-gray-100 text-gray-800">
+<body class="text-gray-200 antialiased overflow-x-hidden">
 
-    <div class="container mx-auto p-4 md:p-8 max-w-4xl">
-        <!-- main Header -->
-        <header class="text-center mb-8">
-            <h1 class="text-4xl font-bold text-gray-900">Facial Recognition & Check-In Engine</h1>
-            <p class="text-lg text-gray-600">AI-Powered Classroom Attendance</p>
+    <!-- Background decorative glows -->
+    <div class="glow-effect top-[-150px] left-[-150px]"></div>
+    <div class="glow-effect bottom-[-150px] right-[-150px] opacity-70"></div>
+
+    <div class="container mx-auto px-4 md:px-8 max-w-3xl min-h-screen flex flex-col justify-center py-16">
+
+        <!-- Header -->
+        <header class="flex justify-between items-center w-full mb-12">
+            <a href="{% url 'attendance' %}" class="flex items-center space-x-3 group">
+                <h1 class="text-xl font-bold text-gray-100 group-hover:text-blue-400 transition-colors">SmartRoll</h1>
+            </a>
+            <nav class="flex items-center space-x-2 text-sm font-medium text-gray-400">
+                <a href="{% url 'add_student' %}" class="px-3 py-2 rounded-lg hover:bg-white/10 transition-colors">Add Student</a>
+                <a href="{% url 'student_list' %}" class="px-3 py-2 rounded-lg hover:bg-white/10 transition-colors">View Roster</a>
+            </nav>
         </header>
 
-        <!-- new navigation Buttons -->
-        <div class="flex justify-end items-center mb-6 space-x-4">
-            <a href="{% url 'add_student' %}" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 transition">Add Student</a>
-            <a href="{% url 'student_list' %}" class="bg-white text-gray-700 font-bold py-2 px-4 rounded-lg border border-gray-300 hover:bg-gray-50 transition">View Current Students</a>
-        </div>
+        <!-- Main Card -->
+        <main class="w-full text-center glass-card rounded-2xl p-8">
+            <h2 class="text-3xl md:text-4xl font-bold text-white mb-2">Instant Attendance</h2>
+            <p class="text-lg text-gray-400 mb-8">Upload a classroom photo to begin.</p>
 
-        <main class="bg-white rounded-lg shadow-lg p-6 mb-8">
-            <form method="post" enctype="multipart/form-data" class="space-y-4">
+            <form id="attendance-form" method="post" enctype="multipart/form-data" class="w-full">
                 {% csrf_token %}
-                <div>
-                    <label for="classroom_photo" class="block text-sm font-medium text-gray-700 mb-2">Upload Classroom Photo:</label>
-                    <input type="file" name="classroom_photo" id="classroom_photo" required class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"/>
+                <div class="w-full max-w-sm mx-auto">
+                    <label for="classroom_photo" class="w-full p-4 rounded-lg cursor-pointer transition-colors duration-300 flex flex-col items-center justify-center">
+                        <div class="relative">
+                            <input type="file" name="classroom_photo" id="classroom_photo" required class="hidden"/>
+                            <div class="bg-blue-600 text-white font-semibold py-3 px-8 rounded-full hover:bg-blue-500 transition-colors duration-300 shadow-lg">
+                                Choose Photo
+                            </div>
+                        </div>
+                    </label>
+                    <span id="file-name-display" class="block text-sm text-gray-500 font-medium mt-3 h-5"></span>
                 </div>
-                <button type="submit" class="w-full bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-300">
-                    Mark Attendance
+
+                <button id="submit-btn" type="submit" class="w-full max-w-xs mx-auto mt-4 bg-gray-700 text-white font-semibold py-3 px-4 rounded-full hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-4 focus:ring-offset-black focus:ring-white transition-all duration-300 flex items-center justify-center space-x-2 disabled:opacity-50">
+                    <span id="btn-text">Mark Attendance</span>
+                    <svg id="spinner" class="animate-spin h-5 w-5 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
                 </button>
             </form>
         </main>
 
+        <!-- Results Section -->
         {% if present_students or absent_students %}
-        <section id="results">
-            <h2 class="text-2xl font-semibold mb-4 text-center">Attendance Report</h2>
-            <div class="grid md:grid-cols-2 gap-6">
+        <section id="results" class="mt-8 mb-8 w-full">
+             <div class="grid md:grid-cols-2 gap-6">
                 <!-- Present Students -->
-                <div class="bg-white rounded-lg shadow-md p-6">
-                    <h3 class="text-xl font-bold text-green-600 mb-3 border-b pb-2">Present ({{ present_count }})</h3>
-                    <ul class="space-y-2">
+                <div class="glass-card rounded-2xl p-6">
+                    <h3 class="text-lg font-semibold text-white mb-4">Present ({{ present_count }})</h3>
+                    <ul class="space-y-3">
                         {% for student in present_students %}
-                        <li class="flex items-center">
-                            <span class="bg-green-100 text-green-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded-full">✔</span>
-                            {{ student }}
-                        </li>
+                        <li class="flex items-center text-gray-200"><svg class="w-5 h-5 mr-3 text-green-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" /></svg>{{ student }}</li>
                         {% empty %}
-                        <li class="text-gray-500">No students were recognized as present.</li>
+                        <li class="text-gray-400">No students were recognized.</li>
                         {% endfor %}
                     </ul>
                 </div>
-                <!-- absent Students -->
-                <div class="bg-white rounded-lg shadow-md p-6">
-                    <h3 class="text-xl font-bold text-red-600 mb-3 border-b pb-2">Absent ({{ absent_count }})</h3>
-                    <ul class="space-y-2">
+                <!-- Absent Students -->
+                <div class="glass-card rounded-2xl p-6">
+                    <h3 class="text-lg font-semibold text-white mb-4">Absent ({{ absent_count }})</h3>
+                    <ul class="space-y-3">
                         {% for student in absent_students %}
-                        <li class="flex items-center">
-                            <span class="bg-red-100 text-red-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded-full">✖</span>
-                            {{ student }}
-                        </li>
+                        <li class="flex items-center text-gray-200"><svg class="w-5 h-5 mr-3 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" /></svg>{{ student }}</li>
                         {% empty %}
-                        <li class="text-gray-500">All students are accounted for.</li>
+                        <li class="text-gray-400">All students were present.</li>
                         {% endfor %}
                     </ul>
                 </div>
             </div>
             {% if processed_image_url %}
-            <div class="mt-8 bg-white rounded-lg shadow-md p-6">
-                <h3 class="text-xl font-bold mb-4 text-center">Processed Image</h3>
+            <div class="mt-8 glass-card rounded-2xl p-6">
+                <h3 class="text-lg font-semibold mb-4 text-center text-white">Processed Image</h3>
                 <img src="{{ processed_image_url }}" alt="Processed Classroom Photo" class="rounded-lg mx-auto max-w-full h-auto">
             </div>
             {% endif %}
         </section>
         {% endif %}
+
+        <!-- Footer -->
+        <footer class="w-full text-center py-8 mt-auto">
+            <p class="text-sm text-gray-500">MIT License &copy; 2025 Pranav Rajeshirke</p>
+        </footer>
+
     </div>
+
+    <!-- JavaScript for UI interactions -->
+    <script>
+        const form = document.getElementById('attendance-form');
+        const submitBtn = document.getElementById('submit-btn');
+        const btnText = document.getElementById('btn-text');
+        const spinner = document.getElementById('spinner');
+        const fileInput = document.getElementById('classroom_photo');
+        const fileNameDisplay = document.getElementById('file-name-display');
+
+        fileInput.addEventListener('change', () => {
+            if (fileInput.files.length > 0) {
+                fileNameDisplay.textContent = `Selected: ${fileInput.files[0].name}`;
+                submitBtn.style.display = 'flex'; // Show the submit button
+            } else {
+                fileNameDisplay.textContent = '';
+                submitBtn.style.display = 'none'; // Hide the submit button
+            }
+        });
+
+        // Hide submit button initially
+        submitBtn.style.display = 'none';
+
+        form.addEventListener('submit', () => {
+            submitBtn.disabled = true;
+            spinner.classList.remove('hidden');
+            btnText.textContent = 'Processing...';
+        });
+    </script>
+
 </body>
 </html>
-
