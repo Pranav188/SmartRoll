@@ -73,7 +73,7 @@ def rebuild_encodings():
 
     for person_name in student_names:
         person_path = os.path.join(DATASET_PATH, person_name)
-        image_files = [f for f in os.listdir(person_path) if f.lower().endswith(('.png', '.jpg', '.jpeg', '.heic'))]
+        image_files = [f for f in os.listdir(person_path) if f.lower().endswith(('.png', '.jpg', '.jpeg'))]
 
         for image_name in image_files:
             image_path = os.path.join(person_path, image_name)

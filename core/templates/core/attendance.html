@@ -10,13 +10,13 @@
 <body class="bg-gray-100 text-gray-800">
 
     <div class="container mx-auto p-4 md:p-8 max-w-4xl">
-        <!-- Main Header -->
+        <!-- main Header -->
         <header class="text-center mb-8">
             <h1 class="text-4xl font-bold text-gray-900">Facial Recognition & Check-In Engine</h1>
             <p class="text-lg text-gray-600">AI-Powered Classroom Attendance</p>
         </header>
 
-        <!-- New Navigation Buttons -->
+        <!-- new navigation Buttons -->
         <div class="flex justify-end items-center mb-6 space-x-4">
             <a href="{% url 'add_student' %}" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 transition">Add Student</a>
             <a href="{% url 'student_list' %}" class="bg-white text-gray-700 font-bold py-2 px-4 rounded-lg border border-gray-300 hover:bg-gray-50 transition">View Current Students</a>
@@ -53,7 +53,7 @@
                         {% endfor %}
                     </ul>
                 </div>
-                <!-- Absent Students -->
+                <!-- absent Students -->
                 <div class="bg-white rounded-lg shadow-md p-6">
                     <h3 class="text-xl font-bold text-red-600 mb-3 border-b pb-2">Absent ({{ absent_count }})</h3>
                     <ul class="space-y-2">
