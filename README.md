@@ -126,7 +126,7 @@ Here is a showcase of the SmartRoll application's user interface.
   <strong>Main Attendance Page</strong><br>
   <em>A minimalist, simple UI for uploading a classroom photo.</em>
   <br>
-  <img src="/Users/pranav/PycharmProjects/smart_roll/screenshots/home.png" alt="Main Attendance Page" width="700">
+  <img src="/screenshots/home.png" alt="Main Attendance Page" width="700">
 </p>
 
 <br>
@@ -135,10 +135,10 @@ Here is a showcase of the SmartRoll application's user interface.
 
 A consistent and intuitive interface for managing the student roster.
 
-|                   Enroll New Student                   | View Roster |
-|:------------------------------------------------------:| :---: |
-|  *A clean form for adding students and their photos.*  | *A simple list to view and delete enrolled students.* |
-| <img src="/Users/pranav/PycharmProjects/smart_roll/screenshots/add_student.png" alt="Enroll New Student Page" width="400"> | <img src="/Users/pranav/PycharmProjects/smart_roll/screenshots/student_list.png" alt="Student Roster Page" width="400"> |
+|                                 Enroll New Student                                 |                                   View Roster                                   |
+|:----------------------------------------------------------------------------------:|:-------------------------------------------------------------------------------:|
+|                *A clean form for adding students and their photos.*                |              *A simple list to view and delete enrolled students.*              |
+| <img src="/screenshots/add_student.png" alt="Enroll New Student Page" width="400"> | <img src="/screenshots/student_list.png" alt="Student Roster Page" width="400"> |
 
 ---
 ## License
