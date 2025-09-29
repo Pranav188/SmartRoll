@@ -15,6 +15,7 @@
 - [How It Works](#how-it-works)
 - [Technology Stack](#technology-stack)
 - [Getting Started](#getting-started)
+- [Screenshots](#screenshots)
 - [License](#license)
 
 ---
@@ -115,6 +116,31 @@ To run the application, you need **two separate terminals**.
 ```sh
 celery -A smart_roll worker -l info
 ```
+---
+
+## Screenshots
+Here is a showcase of the SmartRoll application's user interface.
+<br>
+
+<p align="center">
+  <strong>Main Attendance Page</strong><br>
+  <em>A minimalist, simple UI for uploading a classroom photo.</em>
+  <br>
+  <img src="/Users/pranav/PycharmProjects/smart_roll/screenshots/home.png" alt="Main Attendance Page" width="700">
+</p>
+
+<br>
+
+### Student Management
+
+A consistent and intuitive interface for managing the student roster.
+
+|                   Enroll New Student                   | View Roster |
+|:------------------------------------------------------:| :---: |
+|  *A clean form for adding students and their photos.*  | *A simple list to view and delete enrolled students.* |
+| <img src="/Users/pranav/PycharmProjects/smart_roll/screenshots/add_student.png" alt="Enroll New Student Page" width="400"> | <img src="/Users/pranav/PycharmProjects/smart_roll/screenshots/student_list.png" alt="Student Roster Page" width="400"> |
+
+---
 ## License
 This project is licensed under the MIT License.
 
