@@ -60,14 +60,21 @@ def process_attendance(image_path, all_students):
     return sorted(list(present_names)), sorted(list(absent_names)), output_url
 
 
-def rebuild_encodings():
-    print("[INFO] Rebuilding face encodings...")
+@shared_task
+def rebuild_encodings_task():
+    """
+    Scans the dataset, encodes faces, and saves them.
+    This is the "webapp version" of the enrollment logic, designed to be run
+    as a background task by Celery.
+    """
+    print("[CELERY TASK] Starting: Rebuilding face encodings...")
+
     known_encodings = []
     known_names = []
 
     if not os.path.exists(DATASET_PATH):
-        print("[WARNING] Dataset directory not found, skipping encoding.")
-        return False
+        print("[CELERY TASK] [WARNING] Dataset directory not found, skipping encoding.")
+        return "Dataset directory not found."
 
     student_names = [name for name in os.listdir(DATASET_PATH) if os.path.isdir(os.path.join(DATASET_PATH, name))]
 
@@ -75,30 +82,35 @@ def rebuild_encodings():
         person_path = os.path.join(DATASET_PATH, person_name)
         image_files = [f for f in os.listdir(person_path) if f.lower().endswith(('.png', '.jpg', '.jpeg'))]
 
+        if not image_files:
+            print(f"[CELERY TASK] [WARNING] No images found for {person_name}. Skipping.")
+            continue
+
         for image_name in image_files:
             image_path = os.path.join(person_path, image_name)
+
             image = cv2.imread(image_path)
-            if image is None: continue
+            if image is None:
+                print(f"[CELERY TASK] [WARNING] Could not read image {image_path}. Skipping.")
+                continue
 
             rgb_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
             boxes = face_recognition.face_locations(rgb_image, model=DETECTION_MODEL)
 
-            if len(boxes) != 1: continue
+            if len(boxes) != 1:
+                print(f"[CELERY TASK] [WARNING] Image {image_path} did not have exactly one face. Skipping.")
+                continue
 
             encodings = face_recognition.face_encodings(rgb_image, boxes)
+
             for encoding in encodings:
                 known_encodings.append(encoding)
                 known_names.append(person_name)
 
-    print(f"[INFO] Found {len(known_encodings)} faces. Saving to pickle file.")
+    print(f"[CELERY TASK] Found {len(known_encodings)} faces. Serializing encodings...")
     data = {"encodings": known_encodings, "names": known_names}
     with open(ENCODINGS_FILE, "wb") as f:
         f.write(pickle.dumps(data))
 
-    print("[INFO] Encodings rebuilt successfully.")
-    return True
-
-@shared_task
-def rebuild_encodings_task():
-    print("[CELERY TASK] Starting: Rebuilding face encodings...")
-    return "Encodings rebuilt successfully."
+    print("[CELERY TASK] Encodings rebuilt successfully.")
+    return "Encoding process completed successfully."
