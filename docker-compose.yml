@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  # 1. Django Web Server
+  web:
+    build: .
+    command: gunicorn smart_roll.wsgi:application --bind 0.0.0.0:8000
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+      - redis
+    env_file:
+      - .env
+    # No "environment" section here needed for DB stuff because it pulls
+    # everything (like DATABASE_URL) directly from the .env file above.
+
+  # 2. Celery Worker (Background Tasks)
+  worker:
+    build: .
+    command: celery -A smart_roll worker -l info
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+      - redis
+    env_file:
+      - .env
+
+  # 3. PostgreSQL Database
+  db:
+    image: postgres:15
+    volumes:
+      - smartroll_postgres_data:/var/lib/postgresql/data/
+    env_file:
+      - .env
+    environment:
+      # We map the variables so Postgres knows what to use for creation
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+
+  # 4. Redis Broker
+  redis:
+    image: redis:7-alpine
+
+volumes:
+  smartroll_postgres_data:
