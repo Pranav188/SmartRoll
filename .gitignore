@@ -10,4 +10,4 @@ encodings.pickle
 media/
 attendance_*.csv
 migrate_students.py
-
+smartroll-key.pem
