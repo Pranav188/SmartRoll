@@ -12,3 +12,4 @@ attendance_*.csv
 migrate_students.py
 smartroll-key.pem
 .env
+*.rdb
