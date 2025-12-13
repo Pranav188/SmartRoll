@@ -77,14 +77,14 @@ The easiest way to run SmartRoll is using Docker. No manual installation of Pyth
 
 ### Prerequisites
 
-- [Docker Desktop] (https://www.docker.com/products/docker-desktop/)
+- [Docker Desktop](#https://www.docker.com/products/docker-desktop/)
 - Git
 
 ### Installation & Setup
 
 1.  **Clone the repository:**
     ```sh
-    git clone [https://github.com/Pranav188/SmartRoll.git](https://github.com/Pranav188/SmartRoll.git)
+    git clone https://github.com/Pranav188/SmartRoll.git
     cd SmartRoll
     ```
 
