@@ -13,3 +13,4 @@ migrate_students.py
 smartroll-key.pem
 .env
 *.rdb
+*.pem
