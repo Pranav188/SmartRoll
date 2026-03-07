@@ -116,9 +116,17 @@ High-level flow:
 
 ## Screenshots
 
-- `screenshots/home.png`
-- `screenshots/add_student.png`
-- `screenshots/student_list.png`
+### Home
+
+![Home](screenshots/home.png)
+
+### Add Student
+
+![Add Student](screenshots/add_student.png)
+
+### Student List
+
+![Student List](screenshots/student_list.png)
 
 ## License
 
