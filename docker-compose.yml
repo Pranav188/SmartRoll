@@ -3,6 +3,7 @@ version: '3.8'
 services:
   # 1. Django Web Server
   web:
+    restart: unless-stopped
     build: .
     command: gunicorn smart_roll.wsgi:application --bind 0.0.0.0:8000
     volumes:
@@ -19,6 +20,7 @@ services:
 
   # 2. Celery Worker (Background Tasks)
   worker:
+    restart: unless-stopped
     build: .
     command: celery -A smart_roll worker -l info
     volumes:
@@ -31,6 +33,7 @@ services:
 
   # 3. PostgreSQL Database
   db:
+    restart: unless-stopped 
     image: postgres:15
     volumes:
       - smartroll_postgres_data:/var/lib/postgresql/data/
@@ -44,7 +47,9 @@ services:
 
   # 4. Redis Broker
   redis:
+    restart: unless-stopped
     image: redis:7-alpine
 
 volumes:
   smartroll_postgres_data:
+
