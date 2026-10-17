@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <meta name="theme-color" content="#151719">
+    <title>{% block title %}SmartRoll{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='/css/smartroll.css') }}">
+    <script type="module" src="{{ url_for('static', path='/js/app.js') }}"></script>
+    {% block head %}{% endblock %}
+  </head>
+  <body data-page="{{ active_page }}">
+    <a class="skip-link" href="#main-content">Skip to main content</a>
+    <header class="site-header">
+      <div class="site-header__inner">
+        <a class="brand" href="/" aria-label="SmartRoll home">
+          <span>SmartRoll</span>
+        </a>
+        <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-navigation">
+          <span>Menu</span>
+        </button>
+        <nav class="site-nav" id="site-navigation" aria-label="Primary navigation">
+          <a href="/" {% if active_page == 'attendance' %}aria-current="page"{% endif %}>Attendance</a>
+          <a href="/students" {% if active_page == 'students' %}aria-current="page"{% endif %}>Students</a>
+          <a href="/students/add" {% if active_page == 'add_student' %}aria-current="page"{% endif %}>Enroll student</a>
+        </nav>
+      </div>
+    </header>
+    <main id="main-content" tabindex="-1">
+      {% block content %}{% endblock %}
+    </main>
+    <footer class="site-footer">
+      {% if active_page == 'attendance' %}<p>Recognition suggests matches. It does not save attendance.</p>{% endif %}
+      <p>MIT License &copy; 2025 Pranav Rajeshirke</p>
+    </footer>
+    {% block scripts %}{% endblock %}
+  </body>
+</html>

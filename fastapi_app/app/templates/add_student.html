@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}Enroll a student | SmartRoll{% endblock %}
+
+{% block content %}
+<section class="page-shell page-shell--form surface" aria-labelledby="page-title">
+  <header class="page-heading">
+    <div>
+      <h1 id="page-title">Enroll student</h1>
+      <p class="lede">Enter the student's name and upload their photos.</p>
+    </div>
+  </header>
+
+  <form class="enrollment-layout" id="enrollment-form" novalidate>
+    <section class="enrollment-step" aria-label="Student identity">
+      <label class="field-label" for="student-name">Student name</label>
+      <input class="text-input" id="student-name" name="name" type="text" maxlength="100" autocomplete="name" required aria-describedby="name-help name-error">
+      <p class="field-help" id="name-help">Use the name teachers will recognize in the review list.</p>
+      <p class="field-message" id="name-error" role="alert" hidden></p>
+    </section>
+
+    <section class="enrollment-step" aria-labelledby="photos-heading">
+      <label class="field-label" id="photos-heading" for="student-photos">Student photos</label>
+      <input id="student-photos" name="photos" type="file" accept="image/jpeg,image/png" multiple required aria-describedby="photos-help photos-error">
+      <p class="field-help" id="photos-help">Select up to ten JPEG or PNG photos, up to 10 MiB each. Ensure each contains only one clear face.</p>
+      <p class="field-message" id="photos-error" role="alert" hidden></p>
+
+      <ul class="selected-photos" id="selected-photos" aria-label="Selected photos"></ul>
+    </section>
+
+    <section class="enrollment-submit" aria-labelledby="enrollment-status-title" aria-busy="false">
+      <div class="status-message status-message--compact" id="enrollment-status" aria-live="polite" aria-atomic="true">
+        <div>
+          <h2 id="enrollment-status-title">Ready to enroll</h2>
+          <p id="enrollment-status-copy">The student is created only when you submit this form.</p>
+        </div>
+      </div>
+      <details class="job-meta" id="enrollment-job-meta" hidden>
+        <summary>Processing details</summary>
+        <dl>
+        <div><dt>Job</dt><dd id="enrollment-job-id"></dd></div>
+        </dl>
+      </details>
+      <div class="form-actions">
+        <a class="button button--quiet" href="/students">Cancel</a>
+        <button class="button button--primary" id="enroll-student" type="submit">Enroll student</button>
+        <button class="button button--secondary" id="retry-enrollment" type="button" hidden>Retry encoding</button>
+      </div>
+    </section>
+  </form>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script type="module" src="{{ url_for('static', path='/js/add-student.js') }}"></script>
+{% endblock %}

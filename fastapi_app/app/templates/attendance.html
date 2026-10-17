@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block title %}Take attendance | SmartRoll{% endblock %}
+
+{% block content %}
+<section class="page-shell page-shell--wide" aria-labelledby="page-title">
+  <div class="attendance-workspace">
+    <section class="proof-panel surface" aria-labelledby="page-title">
+      <header class="page-heading">
+        <h1 id="page-title">Take attendance</h1>
+        <p class="lede">Upload a classroom photo, then review the suggested matches.</p>
+      </header>
+      <div class="proof-frame" id="proof-frame" data-state="idle">
+
+        <div class="upload-empty" id="upload-empty">
+          <p class="upload-title">Classroom photo</p>
+          <p class="upload-guidance">Use a clear photo with faces visible.</p>
+          <label class="button button--primary" for="classroom-photo">Choose photo</label>
+          <p class="field-help" id="photo-help">JPEG or PNG, up to 20 MiB. Upload begins when you start recognition.</p>
+        </div>
+
+        <img class="proof-image" id="photo-preview" alt="Preview of the selected classroom photo" hidden>
+        <img class="proof-image" id="processed-image" alt="Processed classroom photo with recognition annotations" hidden>
+      </div>
+
+      <input class="visually-hidden" id="classroom-photo" name="classroom_photo" type="file" accept="image/jpeg,image/png" aria-label="Choose photo" aria-describedby="photo-help photo-message">
+      <p class="field-message" id="photo-message" role="alert" hidden></p>
+      <button class="button button--primary button--full" id="start-recognition" type="button" disabled>
+        Start recognition
+      </button>
+      <div class="proof-actions proof-actions--desktop" id="proof-actions" hidden>
+        <button class="button button--quiet" id="replace-photo" type="button">Replace</button>
+        <button class="button button--quiet button--danger-text" id="remove-photo" type="button">Remove</button>
+        <span class="selected-file" id="selected-file"></span>
+      </div>
+    </section>
+
+    <section class="scan-panel surface" id="scan-panel" aria-labelledby="scan-heading" aria-busy="false">
+      <div class="section-heading">
+        <div>
+          <h2 id="scan-heading">Recognition</h2>
+        </div>
+      </div>
+
+      <div class="status-message" id="status-message" aria-live="polite" aria-atomic="true">
+        <div>
+          <h3>Ready for a class photo</h3>
+          <p>Choose a photo to begin. Nothing is uploaded until you start recognition.</p>
+        </div>
+      </div>
+
+      <details class="job-meta" id="job-meta" hidden>
+        <summary>Processing details</summary>
+        <dl>
+        <div>
+          <dt>Job</dt>
+          <dd id="job-id"></dd>
+        </div>
+        <div>
+          <dt>Started</dt>
+          <dd id="job-started"></dd>
+        </div>
+        </dl>
+      </details>
+
+      <button class="button button--secondary" id="retry-job" type="button" hidden>Retry this scan</button>
+
+      <div class="recognition-results" id="recognition-results" hidden>
+        <section class="result-group result-group--recognized" aria-labelledby="recognized-heading">
+          <header>
+            <h3 id="recognized-heading">Recognized</h3>
+            <span class="result-count" id="recognized-count">0</span>
+          </header>
+          <ul id="recognized-list"></ul>
+        </section>
+
+        <section class="result-group result-group--review" aria-labelledby="review-heading">
+          <header>
+            <h3 id="review-heading">Needs review</h3>
+            <span class="result-count" id="review-count">0</span>
+          </header>
+          <ul id="review-list"></ul>
+        </section>
+
+        <section class="result-group result-group--not-recognized" aria-labelledby="not-recognized-heading">
+          <header>
+            <h3 id="not-recognized-heading">Not recognized</h3>
+            <span class="result-count" id="not-recognized-count">0</span>
+          </header>
+          <ul id="not-recognized-list"></ul>
+        </section>
+
+        <p class="unknown-summary" id="unknown-summary"></p>
+      </div>
+    </section>
+
+    <div class="proof-actions proof-actions--mobile" id="proof-actions-mobile" hidden>
+      <button class="button button--quiet" data-replace-photo type="button">Replace</button>
+      <button class="button button--quiet button--danger-text" data-remove-photo type="button">Remove</button>
+      <span class="selected-file" id="selected-file-mobile"></span>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script type="module" src="{{ url_for('static', path='/js/attendance.js') }}"></script>
+{% endblock %}

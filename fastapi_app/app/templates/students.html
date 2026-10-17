@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}Roster | SmartRoll{% endblock %}
+
+{% block content %}
+<section class="page-shell surface" aria-labelledby="page-title">
+  <header class="page-heading page-heading--actions">
+    <div>
+      <h1 id="page-title">Students</h1>
+    </div>
+    <a class="button button--primary" href="/students/add">Enroll student</a>
+  </header>
+
+  <section class="roster-card" aria-labelledby="roster-heading">
+    <div class="roster-toolbar">
+      <div>
+        <h2 class="visually-hidden" id="roster-heading">Student directory</h2>
+      </div>
+      <label class="search-field">
+        <span class="visually-hidden">Search students</span>
+        <input id="student-search" type="search" placeholder="Search students" autocomplete="off">
+      </label>
+    </div>
+
+    <div class="roster-summary" aria-live="polite">
+      <span id="student-count">Loading roster…</span>
+    </div>
+
+    <div class="roster-table-wrap" id="roster-table-wrap" hidden>
+      <table class="roster-table">
+        <thead>
+          <tr>
+            <th scope="col">Student</th>
+            <th scope="col"><span class="visually-hidden">Actions</span></th>
+          </tr>
+        </thead>
+        <tbody id="student-rows"></tbody>
+      </table>
+    </div>
+
+    <div class="empty-state" id="roster-empty" hidden>
+      <h3 id="empty-title">No students enrolled</h3>
+      <p id="empty-copy">Add the first student and a clear face photo to prepare recognition.</p>
+      <a class="button button--primary" id="empty-action" href="/students/add">Enroll student</a>
+    </div>
+
+    <div class="inline-error" id="roster-error" role="alert" hidden>
+      <strong>Roster could not load.</strong>
+      <span>Check the connection and try again.</span>
+      <button class="button button--secondary" id="reload-roster" type="button">Try again</button>
+    </div>
+  </section>
+</section>
+
+<dialog class="delete-dialog" id="delete-dialog" aria-labelledby="delete-title" aria-describedby="delete-copy">
+  <form method="dialog">
+    <h2 id="delete-title">Delete this student?</h2>
+    <p id="delete-copy">This removes <strong id="delete-student-name"></strong> and their enrollment photos. This action cannot be undone.</p>
+    <p class="field-message" id="delete-error" role="alert" hidden></p>
+    <div class="dialog-actions">
+      <button class="button button--secondary" id="cancel-delete" value="cancel" type="submit">Cancel</button>
+      <button class="button button--danger" id="confirm-delete" value="confirm" type="button">Delete student</button>
+    </div>
+  </form>
+</dialog>
+{% endblock %}
+
+{% block scripts %}
+<script type="module" src="{{ url_for('static', path='/js/students.js') }}"></script>
+{% endblock %}
