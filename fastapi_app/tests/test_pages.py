@@ -34,7 +34,7 @@ def test_local_styles_scripts_and_fonts_are_served() -> None:
         assert client.get(path).status_code == 200
 
 
-def test_openapi_contains_the_migration_contract() -> None:
+def test_openapi_contains_the_api_contract() -> None:
     paths = client.get("/openapi.json").json()["paths"]
 
     assert {

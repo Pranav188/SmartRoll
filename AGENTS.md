@@ -1,32 +1,67 @@
 # Repository Guidelines
 
-## Project Structure & Module Organization
+## Project structure
 
-SmartRoll is a Django facial-recognition attendance app. The Django project lives in `smart_roll/` (`settings.py`, `urls.py`, `celery.py`, WSGI/ASGI entrypoints). The main app is `core/`, with models, views, routes, admin registration, migrations, and templates under `core/templates/core/`. Face-recognition helpers are in `core/face_recognition_engine.py`; utilities include `encode_faces.py`, `benchmark_async_latency.py`, and `stress_test.py`. Runtime assets are stored in `dataset/`, `media/`, `encodings.pickle`, and `screenshots/`; avoid committing private data or generated uploads unless intentionally updating fixtures or docs.
+SmartRoll is a FastAPI facial-recognition application. Runtime code lives in
+`fastapi_app/app/`: `api.py` defines JSON routes, `main.py` serves pages and health
+checks, `models.py` contains SQLAlchemy models, and `tasks.py` handles Celery jobs.
+Recognition and private-file helpers live in `app/services/`. The frontend uses
+Jinja2 templates, local CSS/fonts, and small JavaScript modules in `app/static/`.
+Alembic migrations live in `fastapi_app/alembic/`; tests live in
+`fastapi_app/tests/`.
 
-## Build, Test, and Development Commands
+The default `docker-compose.yml` runs FastAPI, Celery, PostgreSQL, and Redis.
+Application dependencies and its Dockerfile are under `fastapi_app/`.
 
-- `docker compose up -d --build`: build and start Django, Celery, PostgreSQL, and Redis.
-- `docker compose exec web python manage.py migrate`: apply database migrations.
-- `docker compose exec web python manage.py loaddata datadump.json`: load the sample dataset.
-- `docker compose exec web python manage.py createsuperuser`: create an admin user.
-- `docker compose logs web --tail=100`: inspect recent web service logs.
-- `docker compose down`: stop the local stack.
-- `python manage.py test` or `docker compose exec web python manage.py test`: run Django tests.
-- `./.venv/bin/python benchmark_async_latency.py`: reproduce the async latency benchmark.
+## Development commands
 
-## Coding Style & Naming Conventions
+Run these from the repository root:
 
-Use Python 3.10-compatible Django code with 4-space indentation. Keep Django conventions: `PascalCase` for models/classes, `snake_case` for functions, variables, modules, and template names, and descriptive URL names. Place app behavior in `core/` unless it is project configuration, Celery setup, or a standalone script. No formatter config is checked in; keep imports tidy and avoid unrelated formatting churn.
+- `docker compose --env-file .env.fastapi up -d --build`: build and start the stack;
+  the API runs Alembic migrations before starting Uvicorn.
+- `docker compose --env-file .env.fastapi ps`: inspect service status.
+- `docker compose --env-file .env.fastapi logs --tail=100 fastapi_api fastapi_worker`:
+  inspect API and worker logs.
+- `docker compose --env-file .env.fastapi down`: stop services and retain volumes.
+- `PYTHONPATH=fastapi_app ./.venv/bin/python -m pytest -q fastapi_app/tests`: run
+  the application and browser tests.
 
-## Testing Guidelines
+Open `http://127.0.0.1:8001`. `/health` checks API liveness; `/ready` checks
+PostgreSQL and Redis connectivity, not worker health.
 
-Tests use Django's built-in runner. Add tests in `core/tests.py` or a `core/tests/` package as coverage grows. Name methods `test_<behavior>`, and cover models, views, and face-encoding job orchestration when changing those paths. Run `python manage.py test` before opening a PR; use Docker when the change depends on PostgreSQL, Redis, or Celery.
+## Coding and data conventions
 
-## Commit & Pull Request Guidelines
+Target Python 3.10, use four-space indentation, `PascalCase` classes, and
+`snake_case` functions and modules. Keep changes focused and imports tidy.
+Retain API contracts and job states unless the requested behavior changes them.
+Recognition results are suggestions; confirmed attendance and authentication
+are not implemented.
 
-Recent commits use short, direct messages such as `refining readme` and `adding async latency benchmark`. Keep commits focused and imperative or action-oriented, for example `add attendance view tests`. Pull requests should include a concise summary, test commands run, any database or `.env` changes, and screenshots when UI templates or documentation images change. Link issues when available.
+Use new Alembic migrations for schema changes. Do not rewrite applied migration
+history, reset databases, or remove named volumes as part of code cleanup.
+Maintain transaction boundaries and retry behavior when modifying processing.
 
-## Security & Configuration Tips
+## Verification
 
-Configure secrets through `.env` as described in `README.md`; do not commit private keys, production passwords, or new `.pem` files. Treat `dataset/`, `media/`, and `encodings.pickle` as sensitive when they contain real student images or derived biometric data.
+Use pytest with `test_<behavior>` names. Run targeted tests during development
+and the full FastAPI suite before opening a PR. Browser tests need Chrome or
+Playwright Chromium and permission to launch a local server. They use synthetic
+fixtures and mock API results; passing them does not establish live worker or
+database behavior. Changes to persistence, dispatch, or Docker runtime settings
+also require appropriate PostgreSQL/Redis/Celery integration checks.
+
+UI changes should preserve upload validation, polling, retry eligibility,
+keyboard/focus behavior, responsive layouts, and accessible labels. Generated
+test screenshots belong in ignored `fastapi_app/var/screenshots/`.
+
+## Commits, configuration, and privacy
+
+Use short, focused commit messages. PR descriptions should explain behavior,
+checks run, environment or migration changes, and include screenshots for UI
+changes. Preserve user edits and do not commit generated artifacts.
+
+Use `.env.fastapi` for local secrets; `.env.fastapi.example` documents settings.
+Do not commit credentials, private keys, real student photos, embeddings, or
+database dumps. Existing datasets and backups are sensitive retained data and
+are outside routine source-code cleanup. Uploads and processed images live in
+the private storage volume; embeddings are stored in PostgreSQL.

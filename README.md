@@ -1,132 +1,139 @@
 # SmartRoll
 
-SmartRoll is a facial-recognition attendance system built with Django.
-It supports async face-encoding jobs using Celery + Redis and runs as a
-Dockerized multi-service stack.
+SmartRoll uses FastAPI, OpenCV, and dlib to enroll students from photos and
+recognize faces in classroom images. Enrollment and recognition run in Celery
+workers through Redis. PostgreSQL stores students, face embeddings, job states,
+and recognition results.
 
-## Stack
-
-- Python, Django
-- OpenCV + `face_recognition` (dlib)
-- Celery + Redis
-- PostgreSQL
-- Docker, Docker Compose
-- AWS EC2 + Nginx (deployment)
+Recognition results are suggestions for review. The app does not yet implement
+authentication, class ownership, or saved, teacher-confirmed attendance.
 
 ## Architecture
 
-- `web`: Django + Gunicorn HTTP app
-- `worker`: Celery worker for background encoding rebuilds
-- `db`: PostgreSQL
-- `redis`: queue broker/result backend
+The default `docker-compose.yml` runs four services:
 
-## Quick Start (Local)
+| Service | Responsibility |
+| --- | --- |
+| `fastapi_api` | FastAPI/Jinja2 UI, JSON APIs, upload validation, job dispatch, and Alembic migrations |
+| `fastapi_worker` | Celery worker for enrollment and classroom recognition |
+| `fastapi_db` | PostgreSQL database for student records, embeddings, and jobs |
+| `fastapi_redis` | Redis message broker for Celery |
 
-### 1) Clone
+The API returns a job ID after accepting an upload. The browser polls
+`/api/jobs/{job_id}` for its status and result. Failed jobs can be retried when
+eligible. Uploaded and annotated images live in a private named volume shared
+by the API and worker; embeddings are stored in PostgreSQL.
 
-```bash
-git clone https://github.com/Pranav188/SmartRoll.git
-cd SmartRoll
-```
+## Start locally
 
-### 2) Configure `.env`
+Run commands from the repository root with Docker running.
 
-Create `.env` in project root:
+1. For a fresh checkout, create the local environment file:
 
-```env
-POSTGRES_DB=smartroll_db
-POSTGRES_USER=smartroll_user
-POSTGRES_PASSWORD=password123
-DATABASE_URL=postgres://smartroll_user:password123@db:5432/smartroll_db
-CELERY_BROKER_URL=redis://redis:6379/0
-CELERY_RESULT_BACKEND=redis://redis:6379/0
-SECRET_KEY=dev_secret_key
-DEBUG=True
-ALLOWED_HOSTS=.localhost,127.0.0.1,0.0.0.0
-```
+   ```bash
+   cp .env.fastapi.example .env.fastapi
+   ```
 
-### 3) Start services
+   Keep an existing `.env.fastapi` when restarting an existing installation.
+   For a new installation, replace the password in both
+   `FASTAPI_DATABASE_URL` and `FASTAPI_POSTGRES_PASSWORD`, and set a random
+   `FASTAPI_CSRF_SECRET`. The environment file is ignored by Git.
 
-```bash
-docker compose up -d --build
-```
+2. Build and start the stack:
 
-### 4) Initialize DB (first run)
+   ```bash
+   docker compose --env-file .env.fastapi up -d --build
+   ```
 
-```bash
-docker compose exec web python manage.py migrate
-docker compose exec web python manage.py loaddata datadump.json
-docker compose exec web python manage.py createsuperuser
-```
+   The API applies existing Alembic migrations before starting Uvicorn.
+   PostgreSQL and Redis must pass their health checks before the API and worker
+   start. Open <http://127.0.0.1:8001>.
 
-### 5) Open app
+3. Verify the API and its dependencies:
 
-`http://localhost:8000`
+   ```bash
+   curl --fail http://127.0.0.1:8001/health
+   curl --fail http://127.0.0.1:8001/ready
+   ```
 
-## Common Commands
+   Expect `{"status":"ok"}` and `{"status":"ready"}` respectively. Readiness
+   checks PostgreSQL and Redis connectivity; it does not verify worker health.
 
-```bash
-docker compose ps
-docker compose logs web --tail=100
-docker compose down
-```
-
-## Performance Notes
-
-Benchmark (A/B) on `/students/add/` comparing:
-
-- `sync`: rebuild face encodings inside request thread
-- `async`: enqueue rebuild via Celery (`.delay()`)
-
-Observed results (local benchmark):
-
-- Async mean: `4.79 ms` (p50: `2.35 ms`)
-- Sync mean: `11658.52 ms` (p50: `11643.23 ms`)
-- Reduction: `99.96%` mean, `99.98%` p50
-
-Reproduce:
+Inspect services and logs:
 
 ```bash
-./.venv/bin/python benchmark_async_latency.py
+docker compose --env-file .env.fastapi ps
+docker compose --env-file .env.fastapi logs --tail=100 fastapi_api fastapi_worker
 ```
 
-## Architecture Diagram
+Stop the stack while retaining its data:
 
-```mermaid
-flowchart LR
-    U["User Browser"] --> N["Nginx (EC2)"]
-    N --> W["Django + Gunicorn (web)"]
-    W --> P["PostgreSQL (db)"]
-    W --> R["Redis (broker/backend)"]
-    R --> C["Celery Worker"]
-    C --> D["dataset/"]
-    C --> E["encodings.pickle"]
-    W --> M["media/processed images"]
+```bash
+docker compose --env-file .env.fastapi down
 ```
 
-## Deployment (EC2)
+The project name remains `smartroll-fastapi`, with the existing service and
+named-volume names. Existing installations keep using the same PostgreSQL,
+Redis, and private-upload volumes. Do not add `--volumes` when stopping the stack
+unless you intend to delete that data.
 
-High-level flow:
+## Tests
 
-1. Launch Ubuntu EC2 and configure Security Group (`22`, `80`, `443`).
-2. Install Docker + Compose plugin.
-3. Clone repo, create production `.env`, run `docker compose up -d`.
-4. Put Nginx in front of Gunicorn (`127.0.0.1:8000`).
-5. Point domain/Elastic IP and optionally add HTTPS via Certbot.
+The application targets Python 3.10. Its Dockerfile installs the native build
+dependencies required by dlib and OpenCV. For a fresh local environment, run
+`python3.10 -m venv .venv` first; otherwise reuse the existing virtual environment.
+Install the development dependencies and run pytest:
 
-## Screenshots
+```bash
+./.venv/bin/python -m pip install -r fastapi_app/requirements-dev.txt
+PYTHONPATH=fastapi_app ./.venv/bin/python -m pytest -q fastapi_app/tests
+```
 
-### Home
+The suite covers image validation, recognition rules, storage boundaries, job
+retry and cleanup behavior, page/API contracts, and browser interactions. The
+browser tests use synthetic data and a temporary local Uvicorn server. They
+exercise responsive layouts, keyboard controls, and axe-core accessibility
+checks; API responses in these browser scenarios are mocked. They do not prove
+that a live PostgreSQL/Redis/Celery pipeline works.
 
-![Home](screenshots/home.png)
+Browser tests use Google Chrome when installed. Otherwise install Playwright's
+Chromium once:
 
-### Add Student
+```bash
+./.venv/bin/python -m playwright install chromium
+```
 
-![Add Student](screenshots/add_student.png)
+Generated screenshots are written to the ignored `fastapi_app/var/screenshots/`
+directory.
 
-### Student List
+## Maintenance
 
-![Student List](screenshots/student_list.png)
+Remove expired classroom inputs and annotated results using the configured
+retention window:
+
+```bash
+docker compose --env-file .env.fastapi exec fastapi_api python -m app.maintenance
+```
+
+This command preserves job records, marks results expired, and excludes student
+enrollment photos. Review the configured retention period before running it.
+
+## Source layout
+
+- `fastapi_app/app/`: routes, schemas, SQLAlchemy models, configuration, and jobs.
+- `fastapi_app/app/services/`: recognition and private-storage helpers.
+- `fastapi_app/app/templates/` and `fastapi_app/app/static/`: Jinja2 pages, CSS,
+  local fonts, and browser JavaScript modules.
+- `fastapi_app/alembic/`: database migrations.
+- `fastapi_app/tests/`: pytest and Playwright tests.
+- `fastapi_app/Dockerfile` and `fastapi_app/requirements*.txt`: application build
+  and dependencies.
+- `design.md`: UI design reference.
+
+Existing photo datasets, image files, dumps, and local database backups are
+retained as data and are not read by the application. The running app uses its
+PostgreSQL database and private storage volume. Keep student photos, embeddings,
+database exports, credentials, and private keys out of Git and test artifacts.
 
 ## License
 

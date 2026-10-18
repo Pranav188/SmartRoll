@@ -1,55 +1,73 @@
-version: '3.8'
+name: smartroll-fastapi
 
 services:
-  # 1. Django Web Server
-  web:
+  fastapi_api:
+    build:
+      context: ./fastapi_app
+    command: ["sh", "-c", "alembic -c alembic/alembic.ini upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"]
     restart: unless-stopped
-    build: .
-    command: gunicorn smart_roll.wsgi:application --bind 0.0.0.0:8000
-    volumes:
-      - .:/app
     ports:
-      - "8000:8000"
-    depends_on:
-      - db
-      - redis
-    env_file:
-      - .env
-    # No "environment" section here needed for DB stuff because it pulls
-    # everything (like DATABASE_URL) directly from the .env file above.
-
-  # 2. Celery Worker (Background Tasks)
-  worker:
-    restart: unless-stopped
-    build: .
-    command: celery -A smart_roll worker -l info
+      - "127.0.0.1:8001:8000"
+    environment: &fastapi_environment
+      FASTAPI_DATABASE_URL: ${FASTAPI_DATABASE_URL:-postgresql+psycopg://smartroll_fastapi:smartroll_fastapi@fastapi_db:5432/smartroll_fastapi}
+      FASTAPI_REDIS_URL: ${FASTAPI_REDIS_URL:-redis://fastapi_redis:6379/0}
+      FASTAPI_STORAGE_ROOT: /var/lib/smartroll
+      FASTAPI_ALLOWED_ORIGINS: ${FASTAPI_ALLOWED_ORIGINS:-["http://127.0.0.1:8001","http://localhost:8001"]}
+      FASTAPI_ALLOWED_HOSTS: ${FASTAPI_ALLOWED_HOSTS:-["127.0.0.1","localhost","testserver"]}
+      FASTAPI_CSRF_SECRET: ${FASTAPI_CSRF_SECRET:-replace-this-for-local-development}
+      FASTAPI_ENROLLMENT_MAX_BYTES: ${FASTAPI_ENROLLMENT_MAX_BYTES:-10485760}
+      FASTAPI_CLASSROOM_MAX_BYTES: ${FASTAPI_CLASSROOM_MAX_BYTES:-20971520}
+      FASTAPI_COMPLETED_JOB_RETENTION_HOURS: ${FASTAPI_COMPLETED_JOB_RETENTION_HOURS:-24}
     volumes:
-      - .:/app
+      - fastapi_storage:/var/lib/smartroll
     depends_on:
-      - db
-      - redis
-    env_file:
-      - .env
+      fastapi_db:
+        condition: service_healthy
+      fastapi_redis:
+        condition: service_healthy
 
-  # 3. PostgreSQL Database
-  db:
-    restart: unless-stopped 
+  fastapi_worker:
+    build:
+      context: ./fastapi_app
+    command: ["celery", "-A", "app.celery_app:celery_app", "worker", "--loglevel=INFO", "--concurrency=1"]
+    restart: unless-stopped
+    environment: *fastapi_environment
+    volumes:
+      - fastapi_storage:/var/lib/smartroll
+    depends_on:
+      fastapi_db:
+        condition: service_healthy
+      fastapi_redis:
+        condition: service_healthy
+
+  fastapi_db:
     image: postgres:15
-    volumes:
-      - smartroll_postgres_data:/var/lib/postgresql/data/
-    env_file:
-      - .env
-    environment:
-      # We map the variables so Postgres knows what to use for creation
-      - POSTGRES_DB=${POSTGRES_DB}
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-
-  # 4. Redis Broker
-  redis:
     restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${FASTAPI_POSTGRES_DB:-smartroll_fastapi}
+      POSTGRES_USER: ${FASTAPI_POSTGRES_USER:-smartroll_fastapi}
+      POSTGRES_PASSWORD: ${FASTAPI_POSTGRES_PASSWORD:-smartroll_fastapi}
+    volumes:
+      - fastapi_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  fastapi_redis:
     image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - fastapi_redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
 
 volumes:
-  smartroll_postgres_data:
-
+  fastapi_postgres_data:
+  fastapi_redis_data:
+  fastapi_storage:
